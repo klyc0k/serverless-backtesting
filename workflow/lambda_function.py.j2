@@ -1,0 +1,43 @@
+import sys
+sys.path.insert(0, '{{ lib_location }}')
+import json
+from model import Model
+import boto3
+from decimal import Decimal
+
+COMPLETION_QUEUE_URL = '{{ completion_queue }}'
+EXEC_TYPE = '{{ exec_type }}'
+TASK_ID = '{{ task_id }}'
+
+def lambda_handler(event, context):
+    records = event['Records']
+    for r in records:
+        data_id = r['body']
+        # pull data from dynamodb
+        dynamo_conn = boto3.resource('dynamodb')
+        table = dynamo_conn.Table('backtesting-data')
+        response = table.get_item(Key={'data_id': data_id})
+        data = response['Item']['data']
+
+        # run with data
+        model = Model()
+        output = model.run(data)
+        # turn floats into decimal
+        new_output = json.loads(json.dumps(output), parse_float=Decimal)
+
+        # save results to dynamo
+        save_table = dynamo_conn.Table('backtesting-result')
+        result_id = "{}_{}_{}".format(TASK_ID, EXEC_TYPE, data_id)
+        save_table.put_item(Item={'result_id': result_id, 'data_id': data_id, 'exec_type':EXEC_TYPE, 'task_id': TASK_ID, 'data': new_output})
+
+        # send signal to SQS
+        sqs_conn = boto3.client('sqs')
+        {% if completion_queue.endswith('.fifo') %}
+        sqs_conn.send_message(QueueUrl=COMPLETION_QUEUE_URL,
+                              MessageGroupId='completion',
+                              MessageBody=(result_id))
+        {% else %}
+        sqs_conn.send_message(QueueUrl=COMPLETION_QUEUE_URL,
+                              MessageBody=(result_id))
+        {% endif %}
+    return {'statusCode': 200}

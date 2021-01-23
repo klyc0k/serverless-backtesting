@@ -1,3 +1,10 @@
 deploy_config.json
 *.pkl
 *.pem
+.idea
+__pycache__/
+workspace/
+zz*
+*config.json
+deployed_list.json
+historical_data_ids.txt

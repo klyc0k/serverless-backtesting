@@ -1,5 +1,5 @@
 ## Setup
-5 AWS services are applied in this POC, namely ElasticCache, SQS, EFS, EC2, and Lambda. 
+5 AWS services are applied in this POC, namely DynamoDB, SQS, EFS, EC2, and Lambda. 
 
 ### ElastiCache
 

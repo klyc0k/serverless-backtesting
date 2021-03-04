@@ -22,6 +22,8 @@ def run_trigger():
     with open(os.path.join(task_workspace, 'historical_data_ids.txt'), 'r') as f:
         data = f.read()
         data_ids = data.split('\n')
+        if '' in data_ids:
+            data_ids.remove('')
     with open(os.path.join(task_workspace, 'deployed_list.json'), 'r') as f:
         import json
         deployed = json.load(f)
@@ -35,7 +37,8 @@ def run_reduce():
     with open(os.path.join(task_workspace, 'historical_data_ids.txt'), 'r') as f:
         data = f.read()
         data_ids = data.split('\n')
-
+        if '' in data_ids:
+            data_ids.remove('')
     with open(os.path.join(task_workspace, 'deployed_list.json'), 'r') as f:
         deployed = json.load(f)
         sqs_queue_urls = [v for k, v in deployed if k == DeployItem.SQS_QUEUE and v.find('_completion') > 0]

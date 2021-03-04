@@ -9,6 +9,8 @@ class Reducer:
         self.completion_queue_url = completion_queue_url
         self.task_id = task_id
         self.ids = set(ids)
+        if '' in self.ids:
+            self.ids.remove('')
         self.idle_threshold = 60
 
     def run(self):
